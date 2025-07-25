@@ -37,7 +37,6 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
   @override
   void initState() {
     super.initState();
-    _wakelockService.enable();
 
     _controller = AnimationController(
       vsync: this,
@@ -169,8 +168,10 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
       _isSessionRunning = !_isSessionRunning;
       if (_isSessionRunning) {
         _startSession();
+        _wakelockService.enable();
       } else {
         _stopSession();
+        _wakelockService.disable();
       }
     });
   }
@@ -192,7 +193,6 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
   void dispose() {
     _controller.removeListener(_updateState);
     _controller.dispose();
-    _wakelockService.disable();
     super.dispose();
   }
 
