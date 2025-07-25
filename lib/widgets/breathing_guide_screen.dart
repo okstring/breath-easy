@@ -11,25 +11,26 @@ class BreathingGuideScreen extends StatefulWidget {
 
 class _BreathingGuideScreenState extends State<BreathingGuideScreen>
     with SingleTickerProviderStateMixin {
-  // Animation & State
-  late final AnimationController _controller;
-  late final Animation<double> _heightAnimation;
-  late final Animation<Color?> _colorAnimation;
-  String _currentPhase = '준비';
-  int _countdown = 0;
-  bool _isSessionRunning = false;
-
-  // Services
-  final HapticService _hapticService = HapticService();
-
-  final WakelockService _wakelockService = WakelockService();
-
-  // Breathing Timings
+  // --- Constants ---
   static const int _inhaleSeconds = 3;
   static const int _holdSeconds = 3;
   static const int _exhaleSeconds = 7;
   static const int _totalSeconds =
       _inhaleSeconds + _holdSeconds + _exhaleSeconds;
+
+  // --- Services ---
+  final HapticService _hapticService = HapticService();
+  final WakelockService _wakelockService = WakelockService();
+
+  // --- Animation Controllers & Animations ---
+  late final AnimationController _controller;
+  late final Animation<double> _heightAnimation;
+  late final Animation<Color?> _colorAnimation;
+
+  // --- State Variables ---
+  String _currentPhase = '준비';
+  int _countdown = 0;
+  bool _isSessionRunning = false;
 
   @override
   void initState() {
@@ -53,19 +54,22 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
 
   void _initializeAnimations() {
     final screenHeight = MediaQuery.of(context).size.height;
-    const double inhaleWeight = _inhaleSeconds / _totalSeconds;
-    const double holdWeight = _holdSeconds / _totalSeconds;
-    const double exhaleWeight = _exhaleSeconds / _totalSeconds;
+    const double inhaleDurationRatio = _inhaleSeconds / _totalSeconds;
+    const double holdDurationRatio = _holdSeconds / _totalSeconds;
+    const double exhaleDurationRatio = _exhaleSeconds / _totalSeconds;
 
     _heightAnimation = TweenSequence<double>([
       TweenSequenceItem(
         tween: Tween(begin: 0.0, end: screenHeight),
-        weight: inhaleWeight,
+        weight: inhaleDurationRatio,
       ),
-      TweenSequenceItem(tween: ConstantTween(screenHeight), weight: holdWeight),
+      TweenSequenceItem(
+        tween: ConstantTween(screenHeight),
+        weight: holdDurationRatio,
+      ),
       TweenSequenceItem(
         tween: Tween(begin: screenHeight, end: 0.0),
-        weight: exhaleWeight,
+        weight: exhaleDurationRatio,
       ),
     ]).animate(_controller);
 
@@ -75,18 +79,18 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
           begin: Colors.teal.shade300,
           end: Colors.teal.shade600,
         ),
-        weight: inhaleWeight,
+        weight: inhaleDurationRatio,
       ),
       TweenSequenceItem(
         tween: ConstantTween(Colors.purple.shade400),
-        weight: holdWeight,
+        weight: holdDurationRatio,
       ),
       TweenSequenceItem(
         tween: ColorTween(
           begin: Colors.purple.shade400,
           end: Colors.teal.shade300,
         ),
-        weight: exhaleWeight,
+        weight: exhaleDurationRatio,
       ),
     ]).animate(_controller);
 
@@ -97,33 +101,41 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
     if (!_isSessionRunning || !mounted) return;
 
     final progress = _controller.value;
-    const double inhaleEnd = _inhaleSeconds / _totalSeconds;
-    const double holdEnd = (_inhaleSeconds + _holdSeconds) / _totalSeconds;
+    // Calculate the normalized end points for each phase
+    const double inhaleEndNormalized = _inhaleSeconds / _totalSeconds;
+    const double holdEndNormalized =
+        (_inhaleSeconds + _holdSeconds) / _totalSeconds;
 
-    String nextPhase = _currentPhase;
-    int nextCountdown = _countdown;
+    String newPhase;
+    int newCountdown;
 
-    if (progress < inhaleEnd) {
-      nextPhase = '들이쉬기';
-      final phaseProgress = progress / inhaleEnd;
-      nextCountdown = _inhaleSeconds - (_inhaleSeconds * phaseProgress).floor();
-    } else if (progress < holdEnd) {
-      nextPhase = '멈추기';
-      final phaseProgress = (progress - inhaleEnd) / (holdEnd - inhaleEnd);
-      nextCountdown = _holdSeconds - (_holdSeconds * phaseProgress).floor();
+    // Determine current phase and calculate countdown
+    if (progress < inhaleEndNormalized) {
+      newPhase = '들이쉬기';
+      final phaseProgress = progress / inhaleEndNormalized;
+      newCountdown = _inhaleSeconds - (phaseProgress * _inhaleSeconds).floor();
+    } else if (progress < holdEndNormalized) {
+      newPhase = '멈추기';
+      final phaseProgress =
+          (progress - inhaleEndNormalized) /
+          (holdEndNormalized - inhaleEndNormalized);
+      newCountdown = _holdSeconds - (phaseProgress * _holdSeconds).floor();
     } else {
-      nextPhase = '내쉬기';
-      final phaseProgress = (progress - holdEnd) / (1.0 - holdEnd);
-      nextCountdown = _exhaleSeconds - (_exhaleSeconds * phaseProgress).floor();
+      newPhase = '내쉬기';
+      final phaseProgress =
+          (progress - holdEndNormalized) / (1.0 - holdEndNormalized);
+      newCountdown = _exhaleSeconds - (phaseProgress * _exhaleSeconds).floor();
     }
 
-    if (nextPhase != _currentPhase) {
-      _onPhaseChanged(nextPhase);
+    // Update phase if changed
+    if (newPhase != _currentPhase) {
+      _onPhaseChanged(newPhase);
     }
 
-    if (nextCountdown != _countdown) {
+    // Update countdown if changed
+    if (newCountdown != _countdown) {
       setState(() {
-        _countdown = nextCountdown;
+        _countdown = newCountdown;
       });
     }
   }
