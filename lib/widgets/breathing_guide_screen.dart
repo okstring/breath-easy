@@ -1,5 +1,4 @@
 import 'package:breath_easy/services/haptic_service.dart';
-import 'package:breath_easy/services/tts_service.dart';
 import 'package:breath_easy/services/wakelock_service.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +21,7 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
 
   // Services
   final HapticService _hapticService = HapticService();
-  final TtsService _ttsService = TtsService();
+
   final WakelockService _wakelockService = WakelockService();
 
   // Breathing Timings
@@ -133,7 +132,6 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
     _currentPhase = newPhase;
     try {
       _hapticService.vibrate();
-      _ttsService.speak(_currentPhase);
     } catch (e) {
       debugPrint('Service call failed: $e');
     }
@@ -154,14 +152,12 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
   }
 
   void _startSession() {
-    _ttsService.speak("3-3-7 호흡을 시작합니다.");
     _controller.repeat();
     _currentPhase = '들이쉬기'; // Set initial phase
     _countdown = _inhaleSeconds;
   }
 
   void _stopSession() {
-    _ttsService.speak("호흡을 멈춥니다.");
     _controller.stop();
     _controller.reset();
     _currentPhase = '준비';
