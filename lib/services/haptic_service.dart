@@ -1,9 +1,11 @@
 import 'package:haptic_feedback/haptic_feedback.dart';
 
 class HapticService {
-  Future<void> vibrate() async {
-    // This package handles platform checks internally.
-    // We can call it directly.
-    await Haptics.vibrate(HapticsType.light);
+  Future<void> medium() async {
+    await Haptics.vibrate(HapticsType.medium);
+  }
+
+  Future<void> success() async {
+    await Haptics.vibrate(HapticsType.success);
   }
 }

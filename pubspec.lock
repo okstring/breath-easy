@@ -108,10 +108,10 @@ packages:
     dependency: "direct main"
     description:
       name: haptic_feedback
-      sha256: ef6df60bd92ac75c87774c3300dd19732f5fbd81734371ea62196c3f55013408
+      sha256: d3b5ad41858d18a35d317636c9cdc1cb8aef23c7b861ca5896273acc68e1a98a
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.2"
+    version: "0.5.1+1"
   http:
     dependency: transitive
     description:

@@ -116,17 +116,23 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
       newPhase = '들이쉬기';
       final phaseProgress = progress / inhaleEndNormalized;
       newCountdown = (phaseProgress * _inhaleSeconds).floor() + 1;
-      if (newCountdown > _inhaleSeconds) newCountdown = _inhaleSeconds; // Ensure it doesn't exceed max
+      if (newCountdown > _inhaleSeconds)
+        newCountdown = _inhaleSeconds; // Ensure it doesn't exceed max
     } else if (progress < holdEndNormalized) {
       newPhase = '멈추기';
-      final phaseProgress = (progress - inhaleEndNormalized) / (holdEndNormalized - inhaleEndNormalized);
+      final phaseProgress =
+          (progress - inhaleEndNormalized) /
+          (holdEndNormalized - inhaleEndNormalized);
       newCountdown = (phaseProgress * _holdSeconds).floor() + 1;
-      if (newCountdown > _holdSeconds) newCountdown = _holdSeconds; // Ensure it doesn't exceed max
+      if (newCountdown > _holdSeconds)
+        newCountdown = _holdSeconds; // Ensure it doesn't exceed max
     } else {
       newPhase = '내쉬기';
-      final phaseProgress = (progress - holdEndNormalized) / (1.0 - holdEndNormalized);
+      final phaseProgress =
+          (progress - holdEndNormalized) / (1.0 - holdEndNormalized);
       newCountdown = (phaseProgress * _exhaleSeconds).floor() + 1;
-      if (newCountdown > _exhaleSeconds) newCountdown = _exhaleSeconds; // Ensure it doesn't exceed max
+      if (newCountdown > _exhaleSeconds)
+        newCountdown = _exhaleSeconds; // Ensure it doesn't exceed max
     }
 
     // Update phase if changed
@@ -139,17 +145,16 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
       setState(() {
         _countdown = newCountdown;
       });
-
-      //TODO: countdown으로 사운드 재생하기
     }
   }
 
   void _onPhaseChanged(String newPhase) {
     _currentPhase = newPhase;
-    try {
-      _hapticService.vibrate();
-    } catch (e) {
-      debugPrint('Service call failed: $e');
+
+    if (_currentPhase == '들이쉬기') {
+      _hapticService.success();
+    } else {
+      _hapticService.medium();
     }
     setState(() {});
   }
