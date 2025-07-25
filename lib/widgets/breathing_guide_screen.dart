@@ -3,7 +3,9 @@ import 'package:breath_easy/services/wakelock_service.dart';
 import 'package:flutter/material.dart';
 
 class BreathingGuideScreen extends StatefulWidget {
-  const BreathingGuideScreen({super.key});
+  const BreathingGuideScreen({super.key, this.onCountdownChanged});
+
+  final ValueChanged<int>? onCountdownChanged;
 
   @override
   State<BreathingGuideScreen> createState() => _BreathingGuideScreenState();
@@ -76,19 +78,19 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
     _colorAnimation = TweenSequence<Color?>([
       TweenSequenceItem(
         tween: ColorTween(
-          begin: Colors.teal.shade300,
+          begin: Colors.teal.shade100,
           end: Colors.teal.shade600,
         ),
         weight: inhaleDurationRatio,
       ),
       TweenSequenceItem(
-        tween: ConstantTween(Colors.purple.shade400),
+        tween: ConstantTween(Colors.teal.shade600),
         weight: holdDurationRatio,
       ),
       TweenSequenceItem(
         tween: ColorTween(
-          begin: Colors.purple.shade400,
-          end: Colors.teal.shade300,
+          begin: Colors.teal.shade600,
+          end: Colors.teal.shade100,
         ),
         weight: exhaleDurationRatio,
       ),
@@ -113,18 +115,18 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
     if (progress < inhaleEndNormalized) {
       newPhase = '들이쉬기';
       final phaseProgress = progress / inhaleEndNormalized;
-      newCountdown = _inhaleSeconds - (phaseProgress * _inhaleSeconds).floor();
+      newCountdown = (phaseProgress * _inhaleSeconds).floor() + 1;
+      if (newCountdown > _inhaleSeconds) newCountdown = _inhaleSeconds; // Ensure it doesn't exceed max
     } else if (progress < holdEndNormalized) {
       newPhase = '멈추기';
-      final phaseProgress =
-          (progress - inhaleEndNormalized) /
-          (holdEndNormalized - inhaleEndNormalized);
-      newCountdown = _holdSeconds - (phaseProgress * _holdSeconds).floor();
+      final phaseProgress = (progress - inhaleEndNormalized) / (holdEndNormalized - inhaleEndNormalized);
+      newCountdown = (phaseProgress * _holdSeconds).floor() + 1;
+      if (newCountdown > _holdSeconds) newCountdown = _holdSeconds; // Ensure it doesn't exceed max
     } else {
       newPhase = '내쉬기';
-      final phaseProgress =
-          (progress - holdEndNormalized) / (1.0 - holdEndNormalized);
-      newCountdown = _exhaleSeconds - (phaseProgress * _exhaleSeconds).floor();
+      final phaseProgress = (progress - holdEndNormalized) / (1.0 - holdEndNormalized);
+      newCountdown = (phaseProgress * _exhaleSeconds).floor() + 1;
+      if (newCountdown > _exhaleSeconds) newCountdown = _exhaleSeconds; // Ensure it doesn't exceed max
     }
 
     // Update phase if changed
@@ -137,6 +139,8 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
       setState(() {
         _countdown = newCountdown;
       });
+
+      //TODO: countdown으로 사운드 재생하기
     }
   }
 
