@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:breath_easy/core/logger.dart';
 import 'package:breath_easy/models/constants.dart';
 import 'package:breath_easy/presentation/state/breathing_guide_state.dart';
 import 'package:breath_easy/services/haptic_service.dart';
@@ -40,6 +41,7 @@ class BreathingViewModel extends ChangeNotifier {
       currentPhase: BreathingPhase.inhale,
       countdown: BreathingTiming.inhaleSeconds,
       progress: 0.0,
+      currentCycle: 1,
     );
 
     // 화면 꺼짐 방지 활성화
@@ -67,6 +69,7 @@ class BreathingViewModel extends ChangeNotifier {
       currentPhase: BreathingPhase.ready,
       countdown: 0,
       progress: 0.0,
+      currentCycle: 1,
     );
 
     // 화면 꺼짐 방지 비활성화
@@ -89,6 +92,19 @@ class BreathingViewModel extends ChangeNotifier {
 
     final elapsed = DateTime.now().difference(_sessionStartTime!);
     final totalDurationMs = BreathingTiming.totalSeconds * 1000;
+
+    final completedCycles = (elapsed.inMilliseconds / totalDurationMs).floor();
+
+    if (completedCycles >= _state.totalCycles) {
+      stopSession();
+      return;
+    }
+
+    final currentCycle = completedCycles + 1;
+    if (currentCycle != _state.currentCycle) {
+      _state = _state.copyWith(currentCycle: currentCycle);
+    }
+
     final progressMs = elapsed.inMilliseconds % totalDurationMs;
     final progress = progressMs / totalDurationMs;
 
@@ -114,34 +130,43 @@ class BreathingViewModel extends ChangeNotifier {
     if (progress < BreathingTiming.inhaleEndNormalized) {
       // 들이쉬기 단계
       final phaseProgress = progress / BreathingTiming.inhaleEndNormalized;
-      final countdown =
-          (phaseProgress * BreathingTiming.inhaleSeconds).floor() + 1;
+      final countdown = BreathingTiming.inhaleSeconds -
+          (phaseProgress * BreathingTiming.inhaleSeconds).floor();
       return (
         phase: BreathingPhase.inhale,
         countdown: countdown.clamp(1, BreathingTiming.inhaleSeconds),
       );
     } else if (progress < BreathingTiming.holdEndNormalized) {
       // 멈추기 단계
-      final phaseProgress =
-          (progress - BreathingTiming.inhaleEndNormalized) /
+      final phaseProgress = (progress - BreathingTiming.inhaleEndNormalized) /
           (BreathingTiming.holdEndNormalized -
               BreathingTiming.inhaleEndNormalized);
-      final countdown =
-          (phaseProgress * BreathingTiming.holdSeconds).floor() + 1;
+      final countdown = BreathingTiming.holdSeconds -
+          (phaseProgress * BreathingTiming.holdSeconds).floor();
       return (
         phase: BreathingPhase.hold,
         countdown: countdown.clamp(1, BreathingTiming.holdSeconds),
       );
-    } else {
+    } else if (progress < BreathingTiming.exhaleEndNormalized) {
       // 내쉬기 단계
-      final phaseProgress =
-          (progress - BreathingTiming.holdEndNormalized) /
-          (1.0 - BreathingTiming.holdEndNormalized);
-      final countdown =
-          (phaseProgress * BreathingTiming.exhaleSeconds).floor() + 1;
+      final phaseProgress = (progress - BreathingTiming.holdEndNormalized) /
+          (BreathingTiming.exhaleEndNormalized -
+              BreathingTiming.holdEndNormalized);
+      final countdown = BreathingTiming.exhaleSeconds -
+          (phaseProgress * BreathingTiming.exhaleSeconds).floor();
       return (
         phase: BreathingPhase.exhale,
         countdown: countdown.clamp(1, BreathingTiming.exhaleSeconds),
+      );
+    } else {
+      // 휴식 단계
+      final phaseProgress = (progress - BreathingTiming.exhaleEndNormalized) /
+          (1.0 - BreathingTiming.exhaleEndNormalized);
+      final countdown = BreathingTiming.restSeconds -
+          (phaseProgress * BreathingTiming.restSeconds).floor();
+      return (
+        phase: BreathingPhase.rest,
+        countdown: countdown.clamp(1, BreathingTiming.restSeconds),
       );
     }
   }
@@ -150,7 +175,7 @@ class BreathingViewModel extends ChangeNotifier {
   void _onPhaseChanged(String newPhase) {
     if (newPhase == BreathingPhase.inhale) {
       _hapticService.success();
-    } else {
+    } else if (newPhase != BreathingPhase.rest) {
       _hapticService.medium();
     }
   }
@@ -162,3 +187,4 @@ class BreathingViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
+

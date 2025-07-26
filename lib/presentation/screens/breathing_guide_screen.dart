@@ -40,6 +40,8 @@ class _BreathingGuideView extends StatelessWidget {
                 phase: state.currentPhase,
                 countdown: state.countdown,
                 isSessionRunning: state.isSessionRunning,
+                currentCycle: state.currentCycle,
+                totalCycles: state.totalCycles,
               ),
               ControlButton(
                 isSessionRunning: state.isSessionRunning,

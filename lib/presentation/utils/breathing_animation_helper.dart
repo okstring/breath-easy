@@ -12,11 +12,15 @@ class BreathingAnimationHelper {
     } else if (progress < BreathingTiming.holdEndNormalized) {
       // 멈추기: screenHeight 유지
       return screenHeight;
-    } else {
+    } else if (progress < BreathingTiming.exhaleEndNormalized) {
       // 내쉬기: screenHeight → 0
       final phaseProgress = (progress - BreathingTiming.holdEndNormalized) /
-          (1.0 - BreathingTiming.holdEndNormalized);
+          (BreathingTiming.exhaleEndNormalized -
+              BreathingTiming.holdEndNormalized);
       return screenHeight * (1.0 - phaseProgress);
+    } else {
+      // 휴식: 0 유지
+      return 0.0;
     }
   }
 
@@ -26,17 +30,21 @@ class BreathingAnimationHelper {
     final darkTeal = Colors.teal.shade600;
 
     if (progress < BreathingTiming.inhaleEndNormalized) {
-      // 들이쉬기: 연한색 → 진한��
+      // 들이쉬기: 연한색 → 진한색
       final phaseProgress = progress / BreathingTiming.inhaleEndNormalized;
       return Color.lerp(lightTeal, darkTeal, phaseProgress) ?? lightTeal;
     } else if (progress < BreathingTiming.holdEndNormalized) {
       // 멈추기: 진한색 유지
       return darkTeal;
-    } else {
+    } else if (progress < BreathingTiming.exhaleEndNormalized) {
       // 내쉬기: 진한색 → 연한색
       final phaseProgress = (progress - BreathingTiming.holdEndNormalized) /
-          (1.0 - BreathingTiming.holdEndNormalized);
+          (BreathingTiming.exhaleEndNormalized -
+              BreathingTiming.holdEndNormalized);
       return Color.lerp(darkTeal, lightTeal, phaseProgress) ?? darkTeal;
+    } else {
+      // 휴식: 연한색 유지
+      return lightTeal;
     }
   }
 

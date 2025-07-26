@@ -1,4 +1,5 @@
-import 'package:breath_easy/widgets/breathing_guide_screen.dart';
+import 'package:breath_easy/core/logger.dart';
+import 'package:breath_easy/presentation/screens/breathing_guide_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
