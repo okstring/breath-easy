@@ -1,4 +1,4 @@
-package com.example.breath_easy
+package com.okstring.breatheasy
 
 import io.flutter.embedding.android.FlutterActivity
 
