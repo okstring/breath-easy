@@ -272,7 +272,7 @@ class _PhaseAndCountdownDisplay extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(phase, style: _textStyle.copyWith(fontSize: 32)),
+          Text(phase, style: _textStyle.copyWith(fontSize: 42)),
           if (isSessionRunning && countdown > 0)
             Text(
               '$countdown',
@@ -305,12 +305,12 @@ class _ControlButton extends StatelessWidget {
             backgroundColor: Colors.white.withValues(alpha: 0.9),
             foregroundColor: Colors.teal.shade800,
             shape: const CircleBorder(),
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(32),
             elevation: 10,
           ),
           child: Text(
             isSessionRunning ? '정지' : '시작',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ),
       ),
